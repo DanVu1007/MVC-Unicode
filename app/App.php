@@ -39,10 +39,16 @@ class App
         }
         if (file_exists('app/controllers/' . $this->__controller . '.php')) {
             require_once 'controllers/' . ($this->__controller) . '.php';
-            $this->__controller = new ($this->__controller);
-            unset($urlArr[0]);
+
+            //check class $this->__controller exists
+            if(class_exists($this->__controller)){
+                $this->__controller = new ($this->__controller);
+                unset($urlArr[0]);
+            }else{
+                $this->loadError();
+            }
         } else {
-              $this->loadError('404');
+              $this->loadError();
         }
 
         //Handle action
@@ -54,7 +60,13 @@ class App
         //Handle params
         $this->__params = array_values($urlArr);
 
-        call_user_func_array([$this->__controller,$this->__actions],$this->__params);
+        //Check exists method
+        if(method_exists($this->__controller, $this->__actions)){
+            call_user_func_array([$this->__controller,$this->__actions],$this->__params);
+        }else{
+            $this->loadError();
+
+        }
     }
 
     public function loadError($name = '404')
